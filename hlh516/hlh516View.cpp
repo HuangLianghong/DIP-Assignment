@@ -29,6 +29,8 @@ BEGIN_MESSAGE_MAP(Chlh516View, CScrollView)
 	ON_WM_MOUSEMOVE()
 	ON_COMMAND(ID_HISTOGRAM, &Chlh516View::OnHistogram)
 	ON_UPDATE_COMMAND_UI(ID_HISTOGRAM, &Chlh516View::OnUpdateHistogram)
+	ON_COMMAND(ID_LINEAR, &Chlh516View::OnLinear)
+	ON_UPDATE_COMMAND_UI(ID_LINEAR, &Chlh516View::OnUpdateLinear)
 END_MESSAGE_MAP()
 
 // Chlh516View construction/destruction
@@ -180,5 +182,20 @@ bool IsGray();
 void Chlh516View::OnUpdateHistogram(CCmdUI* pCmdUI)
 {
 	// TODO: Add your command update UI handler code here
-	pCmdUI->Enable(lpBitsInfo != NULL && lpBitsInfo->bmiHeader.biBitCount == 8 && IsGray());
+	pCmdUI->Enable(lpBitsInfo != NULL && IsGray());
+}
+
+void LinearTran(float, float);
+void Chlh516View::OnLinear()
+{
+	// TODO: Add your command handler code here
+	LinearTran(-1, 255);
+	Invalidate();
+}
+
+
+void Chlh516View::OnUpdateLinear(CCmdUI* pCmdUI)
+{
+	// TODO: Add your command update UI handler code here
+	pCmdUI->Enable(lpBitsInfo != NULL && IsGray());
 }

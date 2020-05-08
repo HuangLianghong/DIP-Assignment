@@ -187,3 +187,22 @@ void Histogram()
 		}
 	}
 }
+
+void LinearTran(float a, float b)
+{
+	DWORD LineBytes = ((lpBitsInfo->bmiHeader.biBitCount * lpBitsInfo->bmiHeader.biWidth) + 31) / 32 * 4;
+	BYTE* lpBits = (BYTE*)&lpBitsInfo->bmiColors[lpBitsInfo->bmiHeader.biClrUsed];
+	BYTE* pixel;
+	int w = lpBitsInfo->bmiHeader.biWidth;
+	int h = lpBitsInfo->bmiHeader.biHeight;
+
+	for (int i = 0; i < w; ++i) {
+		for (int j = 0; j < h; ++j) {
+			pixel = lpBits + LineBytes * (h - i - 1) + j;
+			float tmp = a * (*pixel) + b;
+			if (tmp > 254) tmp = 254;
+			if (tmp < 0) tmp = 0;
+			*pixel = tmp;
+		}
+	}
+}
