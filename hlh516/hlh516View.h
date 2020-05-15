@@ -46,6 +46,8 @@ public:
 	afx_msg void OnUpdateHistogram(CCmdUI* pCmdUI);
 	afx_msg void OnLinear();
 	afx_msg void OnUpdateLinear(CCmdUI* pCmdUI);
+	afx_msg void OnEqualize();
+	afx_msg void OnUpdateEqualize(CCmdUI* pCmdUI);
 };
 
 #ifndef _DEBUG  // debug version in hlh516View.cpp

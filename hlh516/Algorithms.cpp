@@ -206,3 +206,31 @@ void LinearTran(float a, float b)
 		}
 	}
 }
+
+void Equalize()
+{
+	DWORD LineBytes = ((lpBitsInfo->bmiHeader.biBitCount * lpBitsInfo->bmiHeader.biWidth) + 31) / 32 * 4;
+	BYTE* lpBits = (BYTE*)&lpBitsInfo->bmiColors[lpBitsInfo->bmiHeader.biClrUsed];
+	int w = lpBitsInfo->bmiHeader.biWidth;
+	int h = lpBitsInfo->bmiHeader.biHeight;
+
+	BYTE* pixel;
+	int i, j;
+	BYTE Map[256];
+
+	Histogram();
+	DWORD tmp;
+	for (i = 0; i < 255; i++) {
+		tmp = 0;
+		for (j = 0; j < i; ++j) {
+			tmp += H[j];
+		}
+		Map[i] =(BYTE) (tmp * 254.0/(w * h)+0.5);
+	}
+	for (int i = 0; i < w; ++i) {
+		for (int j = 0; j < h; ++j) {
+			pixel = lpBits + LineBytes * (h - i - 1) + j;
+			*pixel = Map[*pixel];
+		}
+	}
+}
