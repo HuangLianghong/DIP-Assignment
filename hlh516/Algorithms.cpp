@@ -1,5 +1,8 @@
 #include "pch.h"
 #include "Algorithms.h"
+#include <complex>
+#include <math.h>
+using namespace std;
 BITMAPINFO* lpBitsInfo = NULL;
 
 
@@ -231,6 +234,36 @@ void Equalize()
 		for (int j = 0; j < h; ++j) {
 			pixel = lpBits + LineBytes * (h - i - 1) + j;
 			*pixel = Map[*pixel];
+		}
+	}
+}
+#define PI  3.1415926535
+//TD为指向时域数组的指针
+//FD为指向频域数组的指针
+//m为点的个数
+void FT(complex<double>* TD,complex<double>* FD,int m)	
+{
+	int x, u;
+	double angle;
+	for (u = 0; u < m;u++) {
+		FD[u] = 0;
+		for (x = 0; x < m;x++) {
+			angle = -2 * PI * u * x / m;
+			FD[u] += TD[x] * complex<double>(cos(angle), sin(angle));
+		}
+		FD[u] /= m;
+	}
+}
+
+void IFT(complex<double>* FD, complex<double>* TD, int m)
+{
+	int x, u;
+	double angle;
+	for (x = 0; x < m; u++) {
+		TD[x] = 0;
+		for (u = 0; u < m; u++) {
+			angle = 2 * PI * u * x / m;
+			TD[x] += FD[u] * complex<double>(cos(angle), sin(angle));
 		}
 	}
 }
