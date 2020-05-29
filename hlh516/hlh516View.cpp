@@ -33,6 +33,8 @@ BEGIN_MESSAGE_MAP(Chlh516View, CScrollView)
 	ON_UPDATE_COMMAND_UI(ID_LINEAR, &Chlh516View::OnUpdateLinear)
 	ON_COMMAND(ID_EQUALIZE, &Chlh516View::OnEqualize)
 	ON_UPDATE_COMMAND_UI(ID_EQUALIZE, &Chlh516View::OnUpdateEqualize)
+	ON_COMMAND(ID_FT, &Chlh516View::OnFt)
+	ON_UPDATE_COMMAND_UI(ID_FT, &Chlh516View::OnUpdateFt)
 END_MESSAGE_MAP()
 
 // Chlh516View construction/destruction
@@ -215,5 +217,20 @@ void Chlh516View::OnUpdateEqualize(CCmdUI* pCmdUI)
 {
 	// TODO: Add your command update UI handler code here
 	
+	pCmdUI->Enable(lpBitsInfo != NULL && IsGray());
+}
+
+void Fourier();
+void Chlh516View::OnFt()
+{
+	// TODO: Add your command handler code here
+	Fourier();
+	Invalidate();
+}
+
+
+void Chlh516View::OnUpdateFt(CCmdUI* pCmdUI)
+{
+	// TODO: Add your command update UI handler code here
 	pCmdUI->Enable(lpBitsInfo != NULL && IsGray());
 }

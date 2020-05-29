@@ -183,8 +183,8 @@ void Histogram()
 
 	for (int i = 0; i < 256; ++i) H[i] = 0;
 
-	for (int i = 0; i < w; ++i) {
-		for (int j = 0; j < h; ++j) {
+	for (int i = 0; i < h; ++i) {
+		for (int j = 0; j < w; ++j) {
 			pixel = lpBits + LineBytes * (h - i - 1) + j;
 			H[lpBitsInfo->bmiColors[*pixel].rgbRed] += 1;
 		}
@@ -199,8 +199,8 @@ void LinearTran(float a, float b)
 	int w = lpBitsInfo->bmiHeader.biWidth;
 	int h = lpBitsInfo->bmiHeader.biHeight;
 
-	for (int i = 0; i < w; ++i) {
-		for (int j = 0; j < h; ++j) {
+	for (int i = 0; i < h; ++i) {
+		for (int j = 0; j < w; ++j) {
 			pixel = lpBits + LineBytes * (h - i - 1) + j;
 			float tmp = a * (*pixel) + b;
 			if (tmp > 254) tmp = 254;
@@ -230,8 +230,8 @@ void Equalize()
 		}
 		Map[i] =(BYTE) (tmp * 254.0/(w * h)+0.5);
 	}
-	for (int i = 0; i < w; ++i) {
-		for (int j = 0; j < h; ++j) {
+	for (int i = 0; i < h; ++i) {
+		for (int j = 0; j < w; ++j) {
 			pixel = lpBits + LineBytes * (h - i - 1) + j;
 			*pixel = Map[*pixel];
 		}
@@ -241,6 +241,7 @@ void Equalize()
 //TD为指向时域数组的指针
 //FD为指向频域数组的指针
 //m为点的个数
+//一位离散傅里叶正变换
 void FT(complex<double>* TD,complex<double>* FD,int m)	
 {
 	int x, u;
@@ -254,7 +255,7 @@ void FT(complex<double>* TD,complex<double>* FD,int m)
 		FD[u] /= m;
 	}
 }
-
+//一维离散傅里叶反变换
 void IFT(complex<double>* FD, complex<double>* TD, int m)
 {
 	int x, u;
@@ -267,3 +268,57 @@ void IFT(complex<double>* FD, complex<double>* TD, int m)
 		}
 	}
 }
+
+void Fourier()
+{
+	DWORD LineBytes = ((lpBitsInfo->bmiHeader.biBitCount * lpBitsInfo->bmiHeader.biWidth) + 31) / 32 * 4;
+	BYTE* lpBits = (BYTE*)&lpBitsInfo->bmiColors[lpBitsInfo->bmiHeader.biClrUsed];
+	int w = lpBitsInfo->bmiHeader.biWidth;
+	int h = lpBitsInfo->bmiHeader.biHeight;
+
+	BYTE* pixel;
+	complex<double>* TD = new complex<double>[w * h];
+	complex<double>* FD = new complex<double>[w * h];
+
+	for (int i = 0; i < h; ++i) {
+		for (int j = 0; j < w; ++j) {
+			pixel = lpBits + LineBytes * (h - i - 1) + j;
+			TD[w * i + j] = complex<double>(*pixel * pow(-1, i + j), 0);
+		}
+	}
+
+	for (int i = 0; i < h; ++i) {
+		FT(&TD[w * i], &FD[i*w], w);
+	}
+	//转置
+	for (int i = 0; i < h; ++i) {
+		for (int j = 0; j < w; ++j) {
+			TD[h * j + i] = FD[h * i + j];
+		}
+	}
+	for (int j = 0; j < w; ++j) {
+		FT(&TD[h * j], &FD[j*h], h);
+	}
+
+	LONG size = 40 + 1024 + LineBytes * h;
+	LPBITMAPINFO lpDIB_FT = (LPBITMAPINFO)malloc(size);
+	memcpy(lpDIB_FT, lpBitsInfo, size);
+
+	lpBits = (BYTE*)&lpDIB_FT->bmiColors[256];
+
+	double temp;
+	for (int i = 0; i < h; i++) {
+		for (int j = 0; j < w; ++j) {
+			pixel = lpBits + LineBytes * (h - 1 - i) + j;
+			temp = sqrt(FD[j * h + i].real() * FD[j * h + i].real()+FD[j * h + i].imag() * FD[j * h + i].imag()) * 2000;
+			if (temp > 254)
+				temp = 254;
+			*pixel = (BYTE)(temp);
+		}
+	}
+	delete TD;
+	delete FD;
+
+	free(lpBitsInfo);
+	lpBitsInfo = lpDIB_FT;
+};

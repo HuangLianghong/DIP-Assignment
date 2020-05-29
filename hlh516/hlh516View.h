@@ -48,6 +48,8 @@ public:
 	afx_msg void OnUpdateLinear(CCmdUI* pCmdUI);
 	afx_msg void OnEqualize();
 	afx_msg void OnUpdateEqualize(CCmdUI* pCmdUI);
+	afx_msg void OnFt();
+	afx_msg void OnUpdateFt(CCmdUI* pCmdUI);
 };
 
 #ifndef _DEBUG  // debug version in hlh516View.cpp
