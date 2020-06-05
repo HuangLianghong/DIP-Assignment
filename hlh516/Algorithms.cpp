@@ -260,7 +260,7 @@ void IFT(complex<double>* FD, complex<double>* TD, int m)
 {
 	int x, u;
 	double angle;
-	for (x = 0; x < m; u++) {
+	for (x = 0; x < m; x++) {
 		TD[x] = 0;
 		for (u = 0; u < m; u++) {
 			angle = 2 * PI * u * x / m;
@@ -268,7 +268,7 @@ void IFT(complex<double>* FD, complex<double>* TD, int m)
 		}
 	}
 }
-
+complex<double>* gFD = NULL;
 void Fourier()
 {
 	DWORD LineBytes = ((lpBitsInfo->bmiHeader.biBitCount * lpBitsInfo->bmiHeader.biWidth) + 31) / 32 * 4;
@@ -293,7 +293,7 @@ void Fourier()
 	//×ªÖÃ
 	for (int i = 0; i < h; ++i) {
 		for (int j = 0; j < w; ++j) {
-			TD[h * j + i] = FD[h * i + j];
+			TD[h * j + i] = FD[w * i + j];
 		}
 	}
 	for (int j = 0; j < w; ++j) {
@@ -317,8 +317,63 @@ void Fourier()
 		}
 	}
 	delete TD;
-	delete FD;
-
+	//delete FD;
+	gFD = FD;
 	free(lpBitsInfo);
 	lpBitsInfo = lpDIB_FT;
 };
+
+void IFourier()
+{
+	DWORD LineBytes = ((lpBitsInfo->bmiHeader.biBitCount * lpBitsInfo->bmiHeader.biWidth) + 31) / 32 * 4;
+	BYTE* lpBits = (BYTE*)&lpBitsInfo->bmiColors[lpBitsInfo->bmiHeader.biClrUsed];
+	int w = lpBitsInfo->bmiHeader.biWidth;
+	int h = lpBitsInfo->bmiHeader.biHeight;
+
+	BYTE* pixel;
+	complex<double>* TD = new complex<double>[w * h];
+	complex<double>* FD = new complex<double>[w * h];
+
+	for (int i = 0; i < h; ++i) {
+		for (int j = 0; j < w; ++j) {
+			FD[w * i + j] = gFD[h * j + i];
+		}
+	}
+	for (int i = 0; i < h; ++i) {
+		IFT(&FD[w * i], &TD[i * w], w);
+	}
+	//×ªÖÃ
+	for (int i = 0; i < h; ++i) {
+		for (int j = 0; j < w; ++j) {
+			FD[h * j + i] = TD[w * i + j];
+		}
+	}
+	for (int j = 0; j < w; ++j) {
+		IFT(&FD[h * j], &TD[j * h], h);
+	}
+
+
+	LONG size = 40 + 1024 + LineBytes * h;
+	LPBITMAPINFO lpDIB_IFT = (LPBITMAPINFO)malloc(size);
+	memcpy(lpDIB_IFT, lpBitsInfo, size);
+
+	lpBits = (BYTE*)&lpDIB_IFT->bmiColors[256];
+
+	for (int i = 0; i < h; i++) {
+		for (int j = 0; j < w; ++j) {
+			pixel = lpBits + LineBytes * (h - 1 - i) + j;
+			*pixel = (BYTE)(TD[j * h + i].real() / pow(-1, i + j));
+		}
+	}
+	delete TD;
+	delete FD;
+	delete gFD;
+	gFD = NULL;
+	
+	free(lpBitsInfo);
+	lpBitsInfo = lpDIB_IFT;
+}
+BOOL gFD_isValid()
+{
+	return (gFD != NULL);
+}
