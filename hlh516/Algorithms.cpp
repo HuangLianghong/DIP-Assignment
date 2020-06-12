@@ -377,3 +377,159 @@ BOOL gFD_isValid()
 {
 	return (gFD != NULL);
 }
+//均值滤波
+//Array:运算模板，3*3数组，用一维数组表示
+void Template(int* Array, float coef)
+{
+	//图像的宽度和高度
+	int w = lpBitsInfo->bmiHeader.biWidth;
+	int h = lpBitsInfo->bmiHeader.biHeight;
+
+	//每行的字节数
+	int LineBytes = ((lpBitsInfo->bmiHeader.biBitCount * lpBitsInfo->bmiHeader.biWidth) + 31) / 32 * 4;
+	//指向原图像数据的指针
+	BYTE* lpBits = (BYTE*)&lpBitsInfo->bmiColors[lpBitsInfo->bmiHeader.biClrUsed];
+
+	//为新图像分配内存
+	BITMAPINFO* new_lpBitsInfo;
+	LONG size = sizeof(BITMAPINFOHEADER) + 256 * sizeof(RGBQUAD) + h * LineBytes;
+	if (NULL == (new_lpBitsInfo = (LPBITMAPINFO)malloc(size)))
+		return;
+
+	//复制BMP
+	memcpy(new_lpBitsInfo, lpBitsInfo, size);
+	//新图像起始位置
+	BYTE* lpNewBIts = (BYTE*)&new_lpBitsInfo->bmiColors[new_lpBitsInfo->bmiHeader.biClrUsed];
+
+	int i, j, k, l;
+	BYTE* pixel, * new_pixel;
+	float result;
+
+	//行
+	for (i = 1; i < h - 1; i++) {
+		//列
+		for (j = 1; j < w - 1; j++) {
+			new_pixel = lpNewBIts + LineBytes * (h - 1 - i) * j;
+			result = 0;
+
+			//3*3模板内的像素和
+			for (k = 0; k < 3; k++) {
+				for (l = 0; l < 3; l++) {
+					pixel = lpBits + LineBytes * (h - 1 - k) + j - 1 + l;
+
+					result += (*pixel) * Array[k * 3 + l];
+				}
+			}
+
+			result *= coef;
+			if (result < 0) *new_pixel = 0;
+			else if (result > 254) *new_pixel = 254;
+			else *new_pixel = (BYTE)(result + 0.5);
+		}
+	}
+	free(lpBitsInfo);
+	lpBitsInfo = new_lpBitsInfo;
+}
+
+BYTE WINAPI GetMedianNum(BYTE* Array)
+{
+	int i, j;
+	BYTE tmp;
+	//也可在得到一半有序数组后就结束排序
+	for (i = 0; i < 8; i++) {
+		for (j = i + 1; i < 9; j++) {
+			if (Array[i] > Array[j]) {
+				tmp = Array[i];
+				Array[i] = Array[j];
+				Array[j] = tmp;
+			}
+		}
+	}
+	return Array[4];
+}
+//中值滤波
+void MedianFilter()
+{
+	//图像的宽度和高度
+	int w = lpBitsInfo->bmiHeader.biWidth;
+	int h = lpBitsInfo->bmiHeader.biHeight;
+
+	//每行的字节数
+	int LineBytes = ((lpBitsInfo->bmiHeader.biBitCount * lpBitsInfo->bmiHeader.biWidth) + 31) / 32 * 4;
+	//指向原图像数据的指针
+	BYTE* lpBits = (BYTE*)&lpBitsInfo->bmiColors[lpBitsInfo->bmiHeader.biClrUsed];
+
+	//为新图像分配内存
+	BITMAPINFO* new_lpBitsInfo;
+	LONG size = sizeof(BITMAPINFOHEADER) + 256 * sizeof(RGBQUAD) + h * LineBytes;
+	if (NULL == (new_lpBitsInfo = (LPBITMAPINFO)malloc(size)))
+		return;
+
+	//复制BMP
+	memcpy(new_lpBitsInfo, lpBitsInfo, size);
+	//新图像起始位置
+	BYTE* lpNewBIts = (BYTE*)&new_lpBitsInfo->bmiColors[new_lpBitsInfo->bmiHeader.biClrUsed];
+
+	int i, j, k, l;
+	BYTE* pixel, * new_pixel;
+	BYTE Value[9];	//3*3模板
+
+	//行
+	for (i = 1; i < h - 1; i++) {
+		//列
+		for (j = 1; j < w - 1; j++) {
+			new_pixel = lpNewBIts + LineBytes * (h - 1 - i) * j;
+
+			//3*3模板内的像素和
+			for (k = 0; k < 3; k++) {
+				for (l = 0; l < 3; l++) {
+					pixel = lpBits + LineBytes * (h - 1 - k) + j - 1 + l;
+
+					Value[k * 3 + l] = *pixel;
+				}
+			}
+
+			*new_pixel = GetMedianNum(Value);
+		}
+	}
+	free(lpBitsInfo);
+	lpBitsInfo = new_lpBitsInfo;
+}
+
+//梯度锐化函数
+void GradientSharp()
+{
+	//图像的宽度和高度
+	int w = lpBitsInfo->bmiHeader.biWidth;
+	int h = lpBitsInfo->bmiHeader.biHeight;
+
+	//每行的字节数
+	int LineBytes = ((lpBitsInfo->bmiHeader.biBitCount * lpBitsInfo->bmiHeader.biWidth) + 31) / 32 * 4;
+	//指向原图像数据的指针
+	BYTE* lpBits = (BYTE*)&lpBitsInfo->bmiColors[lpBitsInfo->bmiHeader.biClrUsed];
+
+	BYTE* lpSrc, * lpSrc1, * lpSrc2;
+
+	int i, j;
+	BYTE temp;
+
+	//行
+	for (i = 0; i < h - 1; i++) {
+		//列
+		for (j = 0; j < w - 1; j++) {
+			//第i行，第j个
+			lpSrc = lpBits + LineBytes * (h - 1 - i) + j;
+			//第i+1行，第j个
+			lpSrc1 = lpBits + LineBytes * (h - 2 - i) + j;
+			//第i行，第j+1个
+			lpSrc2 = lpBits + LineBytes * (h - 1 - i) + j + 1;
+			//梯度算子
+			temp = abs((*lpSrc) - (*lpSrc1)) + abs((*lpSrc) - (*lpSrc2));
+
+			if (temp > 254)
+				*lpSrc = 254;
+			else
+				*lpSrc = temp;
+		}
+	}
+}
