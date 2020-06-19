@@ -608,7 +608,7 @@ void IFFourier()
 		for (j = 0; j < FFT_w; j++)  // 列
 			FD[j + FFT_w * i] = gFD[i + FFT_h * j];
 
-	// 沿水平方向进行快速付立叶变换
+	// 沿水平方向进行快速傅里叶变换
 	for (i = 0; i < FFT_h; i++)
 		IFFT(&FD[FFT_w * i], &TD[FFT_w * i], wp);
 
@@ -617,7 +617,7 @@ void IFFourier()
 		for (j = 0; j < FFT_w; j++)
 			FD[i + FFT_h * j] = TD[j + FFT_w * i];
 
-	// 沿垂直方向进行快速付立叶变换
+	// 沿垂直方向进行快速傅里叶变换
 	for (i = 0; i < FFT_w; i++)
 		IFFT(&FD[i * FFT_h], &TD[i * FFT_h], hp);
 
@@ -650,7 +650,7 @@ void IFFourier()
 	// 删除临时变量
 	delete FD;
 	delete TD;
-	delete gFD;
+	//delete gFD;
 }
 
 
@@ -718,11 +718,11 @@ BYTE WINAPI GetMedianNum(BYTE* Array)
 	BYTE tmp;
 	//也可在得到一半有序数组后就结束排序
 	for (i = 0; i < 8; i++) {
-		for (j = i + 1; i < 9; j++) {
-			if (Array[i] > Array[j]) {
-				tmp = Array[i];
-				Array[i] = Array[j];
-				Array[j] = tmp;
+		for (j = 0; j < 9-i-1; j++) {
+			if (Array[j] > Array[j+1]) {
+				tmp = Array[j];
+				Array[j] = Array[j+1];
+				Array[j+1] = tmp;
 			}
 		}
 	}
@@ -759,12 +759,12 @@ void MedianFilter()
 	for (i = 1; i < h - 1; i++) {
 		//列
 		for (j = 1; j < w - 1; j++) {
-			new_pixel = lpNewBIts + LineBytes * (h - 1 - i) * j;
+			new_pixel = lpNewBIts + LineBytes * (h - 1 - i) + j;
 
-			//3*3模板内的像素和
+			//3*3模板内的像素的灰度值
 			for (k = 0; k < 3; k++) {
 				for (l = 0; l < 3; l++) {
-					pixel = lpBits + LineBytes * (h - 1 - k) + j - 1 + l;
+					pixel = lpBits + LineBytes * (h - i - k) + j - 1 + l;
 
 					Value[k * 3 + l] = *pixel;
 				}
@@ -813,4 +813,77 @@ void GradientSharp()
 				*lpSrc = temp;
 		}
 	}
+}
+//理想低-高通滤波
+// D>0低通滤波
+// D<0高通滤波
+void Ideal_Filter_FFT(int D)
+{
+	//图像的宽度和高度
+	int width = lpBitsInfo->bmiHeader.biWidth;
+	int height = lpBitsInfo->bmiHeader.biHeight;
+	int FFT_w = 1;
+	while (FFT_w * 2 <= width)
+		FFT_w *= 2;
+	int FFT_h = 1;
+	while (FFT_h * 2 <= height)
+		FFT_h *= 2;
+
+	//备份原始频域数据
+	complex<double>* origin_FD = new complex<double>[FFT_w * FFT_h];
+	for (int n = 0; n < FFT_w * FFT_h; n++)
+		origin_FD[n] = gFD[n];
+
+	//频率滤波（理想高/低通滤波）
+	int i, j;
+	double dis;
+	for (i = 0; i < FFT_h; i++)
+	{
+		for (j = 0; j < FFT_w; j++)
+		{
+			dis = sqrt((i - FFT_h / 2) * (i - FFT_h / 2) + (j - FFT_w / 2) * (j - FFT_w / 2) + 1);
+			if (D > 0) //低通
+			{
+				if (dis > D)
+					gFD[i * FFT_h + j] = 0; //理想低通，截断高频
+			}
+			else { //高通
+				if (dis <= -D)
+					gFD[i * FFT_h + j] = 0; //理想高通，截断低频
+			}
+		}
+	}
+
+	//生成新的频谱图像
+	int LineBytes = (width * lpBitsInfo->bmiHeader.biBitCount + 31) / 32 * 4;
+	LONG size = 40 + 1024 + LineBytes * height;
+	BITMAPINFO* new_lpDIB_FFT = (LPBITMAPINFO)malloc(size);
+	memcpy(new_lpDIB_FFT, lpDIB_FFT, size);
+	BYTE* lpBits = (BYTE*)&new_lpDIB_FFT->bmiColors[new_lpDIB_FFT->bmiHeader.biClrUsed];
+	double temp;
+	BYTE* pixel;
+	for (i = 0; i < FFT_h; i++)
+	{
+		for (j = 0; j < FFT_w; j++)
+		{
+			temp = sqrt(gFD[j * FFT_h + i].real() * gFD[j * FFT_h + i].real() +
+				gFD[j * FFT_h + i].imag() * gFD[j * FFT_h + i].imag()) * 2000;
+			if (temp > 255)
+				temp = 255;
+			pixel = lpBits + LineBytes * (height - 1 - i) + j;
+			*pixel = (BYTE)(temp);
+		}
+	}
+	//释放原频谱图像
+	if (lpDIB_FFT)
+		free(lpDIB_FFT);
+	//更新新的频谱图像
+	lpDIB_FFT = new_lpDIB_FFT;
+
+	//快速傅里叶反变换
+	IFFourier();
+
+	//恢复到原始频域数据
+	delete gFD;
+	gFD = origin_FD;
 }

@@ -56,6 +56,12 @@ public:
 	afx_msg void OnUpdateFft(CCmdUI* pCmdUI);
 	afx_msg void OnIfft();
 	afx_msg void OnUpdateIfft(CCmdUI* pCmdUI);
+	afx_msg void OnFilter();
+	afx_msg void OnUpdateFilter(CCmdUI* pCmdUI);
+	afx_msg void OnMedian();
+	afx_msg void OnUpdateMedian(CCmdUI* pCmdUI);
+	afx_msg void OnSharp();
+	afx_msg void OnUpdateSharp(CCmdUI* pCmdUI);
 };
 
 #ifndef _DEBUG  // debug version in hlh516View.cpp

@@ -41,6 +41,12 @@ BEGIN_MESSAGE_MAP(Chlh516View, CScrollView)
 	ON_UPDATE_COMMAND_UI(ID_FFT, &Chlh516View::OnUpdateFft)
 	ON_COMMAND(ID_IFFT, &Chlh516View::OnIfft)
 	ON_UPDATE_COMMAND_UI(ID_IFFT, &Chlh516View::OnUpdateIfft)
+	ON_COMMAND(ID_FILTER, &Chlh516View::OnFilter)
+	ON_UPDATE_COMMAND_UI(ID_FILTER, &Chlh516View::OnUpdateFilter)
+	ON_COMMAND(ID_MEDIAN, &Chlh516View::OnMedian)
+	ON_UPDATE_COMMAND_UI(ID_MEDIAN, &Chlh516View::OnUpdateMedian)
+	ON_COMMAND(ID_SHARP, &Chlh516View::OnSharp)
+	ON_UPDATE_COMMAND_UI(ID_SHARP, &Chlh516View::OnUpdateSharp)
 END_MESSAGE_MAP()
 
 // Chlh516View construction/destruction
@@ -80,7 +86,7 @@ void Chlh516View::OnDraw(CDC* pDC)
 		BYTE* lpBits = (BYTE*)&lpDIB_FFT->bmiColors[256];
 		StretchDIBits(
 			pDC->GetSafeHdc(),
-			600, 0,
+			520, 0,
 			lpDIB_FFT->bmiHeader.biWidth,
 			lpDIB_FFT->bmiHeader.biHeight,
 			0, 0,
@@ -96,7 +102,7 @@ void Chlh516View::OnDraw(CDC* pDC)
 		BYTE* lpBits = (BYTE*)&lpDIB_IFFT->bmiColors[256];
 		StretchDIBits(
 			pDC->GetSafeHdc(),
-			600, 0,
+			1040, 0,
 			lpDIB_IFFT->bmiHeader.biWidth,
 			lpDIB_IFFT->bmiHeader.biHeight,
 			0, 0,
@@ -325,4 +331,49 @@ void Chlh516View::OnUpdateIfft(CCmdUI* pCmdUI)
 {
 	// TODO: Add your command update UI handler code here
 	pCmdUI->Enable(gFD_isValid());
+}
+
+void Ideal_Filter_FFT(int );
+void Chlh516View::OnFilter()
+{
+	// TODO: Add your command handler code here
+	Ideal_Filter_FFT(80);
+	Invalidate();
+}
+
+
+void Chlh516View::OnUpdateFilter(CCmdUI* pCmdUI)
+{
+	// TODO: Add your command update UI handler code here
+	pCmdUI->Enable(gFD_isValid());
+}
+
+void MedianFilter();
+void Chlh516View::OnMedian()
+{
+	// TODO: Add your command handler code here
+	MedianFilter();
+	Invalidate();
+}
+
+
+void Chlh516View::OnUpdateMedian(CCmdUI* pCmdUI)
+{
+	// TODO: Add your command update UI handler code here
+	pCmdUI->Enable(lpBitsInfo != NULL && lpBitsInfo->bmiHeader.biBitCount == 8);
+}
+
+void GradientSharp();
+void Chlh516View::OnSharp()
+{
+	// TODO: Add your command handler code here
+	GradientSharp();
+	Invalidate();
+}
+
+
+void Chlh516View::OnUpdateSharp(CCmdUI* pCmdUI)
+{
+	// TODO: Add your command update UI handler code here
+	pCmdUI->Enable(lpBitsInfo != NULL && IsGray());
 }
