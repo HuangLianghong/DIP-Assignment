@@ -1,3 +1,11 @@
+/*
+学号：2017052516
+姓名：黄亮鸿
+专业：信息安全
+GitHub：https://github.com/HuangLianghong/DIP-Assignment.git
+
+注：github中有程序完整的提交记录
+*/
 #include "pch.h"
 #include "Algorithms.h"
 #include <complex>
@@ -399,7 +407,8 @@ void Fourier()
 	for (int i = 0; i < h; i++) {
 		for (int j = 0; j < w; ++j) {
 			pixel = lpBits + LineBytes * (h - 1 - i) + j;
-			temp = sqrt(FD[j * h + i].real() * FD[j * h + i].real()+FD[j * h + i].imag() * FD[j * h + i].imag()) * 2000;
+			temp = sqrt(FD[j * h + i].real() * FD[j * h + i].real()+FD[j * h 
+				+ i].imag() * FD[j * h + i].imag()) * 2000;
 			if (temp > 254)
 				temp = 254;
 			*pixel = (BYTE)(temp);
@@ -667,7 +676,7 @@ void Template(int* Array, float coef)
 	int h = lpBitsInfo->bmiHeader.biHeight;
 
 	//每行的字节数
-	int LineBytes = ((lpBitsInfo->bmiHeader.biBitCount * lpBitsInfo->bmiHeader.biWidth) + 31) / 32 * 4;
+	int LineBytes = ((lpBitsInfo->bmiHeader.biBitCount * w) + 31) / 32 * 4;
 	//指向原图像数据的指针
 	BYTE* lpBits = (BYTE*)&lpBitsInfo->bmiColors[lpBitsInfo->bmiHeader.biClrUsed];
 
@@ -690,13 +699,13 @@ void Template(int* Array, float coef)
 	for (i = 1; i < h - 1; i++) {
 		//列
 		for (j = 1; j < w - 1; j++) {
-			new_pixel = lpNewBIts + LineBytes * (h - 1 - i) * j;
+			new_pixel = lpNewBIts + LineBytes * (h - 1 - i) + j;
 			result = 0;
 
 			//3*3模板内的像素和
 			for (k = 0; k < 3; k++) {
 				for (l = 0; l < 3; l++) {
-					pixel = lpBits + LineBytes * (h - 1 - k) + j - 1 + l;
+					pixel = lpBits + LineBytes * (h - i - k) + j - 1 + l;
 
 					result += (*pixel) * Array[k * 3 + l];
 				}

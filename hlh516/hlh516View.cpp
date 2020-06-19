@@ -47,6 +47,8 @@ BEGIN_MESSAGE_MAP(Chlh516View, CScrollView)
 	ON_UPDATE_COMMAND_UI(ID_MEDIAN, &Chlh516View::OnUpdateMedian)
 	ON_COMMAND(ID_SHARP, &Chlh516View::OnSharp)
 	ON_UPDATE_COMMAND_UI(ID_SHARP, &Chlh516View::OnUpdateSharp)
+	ON_COMMAND(ID_TEMPLATE, &Chlh516View::OnTemplate)
+	ON_UPDATE_COMMAND_UI(ID_TEMPLATE, &Chlh516View::OnUpdateTemplate)
 END_MESSAGE_MAP()
 
 // Chlh516View construction/destruction
@@ -240,7 +242,7 @@ void LinearTran(float, float);
 void Chlh516View::OnLinear()
 {
 	// TODO: Add your command handler code here
-	LinearTran(-1, 255);
+	LinearTran(2, 15);
 	Invalidate();
 }
 
@@ -373,6 +375,23 @@ void Chlh516View::OnSharp()
 
 
 void Chlh516View::OnUpdateSharp(CCmdUI* pCmdUI)
+{
+	// TODO: Add your command update UI handler code here
+	pCmdUI->Enable(lpBitsInfo != NULL && IsGray());
+}
+
+void Template(int* Array, float coef);
+void Chlh516View::OnTemplate()
+{
+	// TODO: Add your command handler code here
+	int array[9];
+	for (int i = 0; i < 9; ++i)	array[i] = 1;
+	Template(array, 1.0/9.0);
+	Invalidate();
+}
+
+
+void Chlh516View::OnUpdateTemplate(CCmdUI* pCmdUI)
 {
 	// TODO: Add your command update UI handler code here
 	pCmdUI->Enable(lpBitsInfo != NULL && IsGray());

@@ -62,6 +62,8 @@ public:
 	afx_msg void OnUpdateMedian(CCmdUI* pCmdUI);
 	afx_msg void OnSharp();
 	afx_msg void OnUpdateSharp(CCmdUI* pCmdUI);
+	afx_msg void OnTemplate();
+	afx_msg void OnUpdateTemplate(CCmdUI* pCmdUI);
 };
 
 #ifndef _DEBUG  // debug version in hlh516View.cpp
