@@ -52,6 +52,10 @@ public:
 	afx_msg void OnUpdateFt(CCmdUI* pCmdUI);
 	afx_msg void OnIft();
 	afx_msg void OnUpdateIft(CCmdUI* pCmdUI);
+	afx_msg void OnFft();
+	afx_msg void OnUpdateFft(CCmdUI* pCmdUI);
+	afx_msg void OnIfft();
+	afx_msg void OnUpdateIfft(CCmdUI* pCmdUI);
 };
 
 #ifndef _DEBUG  // debug version in hlh516View.cpp

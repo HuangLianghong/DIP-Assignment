@@ -37,6 +37,10 @@ BEGIN_MESSAGE_MAP(Chlh516View, CScrollView)
 	ON_UPDATE_COMMAND_UI(ID_FT, &Chlh516View::OnUpdateFt)
 	ON_COMMAND(ID_IFT, &Chlh516View::OnIft)
 	ON_UPDATE_COMMAND_UI(ID_IFT, &Chlh516View::OnUpdateIft)
+	ON_COMMAND(ID_FFT, &Chlh516View::OnFft)
+	ON_UPDATE_COMMAND_UI(ID_FFT, &Chlh516View::OnUpdateFft)
+	ON_COMMAND(ID_IFFT, &Chlh516View::OnIfft)
+	ON_UPDATE_COMMAND_UI(ID_IFFT, &Chlh516View::OnUpdateIfft)
 END_MESSAGE_MAP()
 
 // Chlh516View construction/destruction
@@ -60,7 +64,8 @@ BOOL Chlh516View::PreCreateWindow(CREATESTRUCT& cs)
 }
 
 // Chlh516View drawing
-
+extern BITMAPINFO* lpDIB_FFT;
+extern BITMAPINFO* lpDIB_IFFT;
 void Chlh516View::OnDraw(CDC* pDC)
 {
 	Chlh516Doc* pDoc = GetDocument();
@@ -70,6 +75,40 @@ void Chlh516View::OnDraw(CDC* pDC)
 
 	// TODO: add draw code for native data here
 	if (NULL == lpBitsInfo) return;
+	if (lpDIB_FFT)
+	{
+		BYTE* lpBits = (BYTE*)&lpDIB_FFT->bmiColors[256];
+		StretchDIBits(
+			pDC->GetSafeHdc(),
+			600, 0,
+			lpDIB_FFT->bmiHeader.biWidth,
+			lpDIB_FFT->bmiHeader.biHeight,
+			0, 0,
+			lpDIB_FFT->bmiHeader.biWidth,
+			lpDIB_FFT->bmiHeader.biHeight,
+			lpBits,
+			lpDIB_FFT, // bitmap data 
+			DIB_RGB_COLORS,
+			SRCCOPY);
+	}
+	if (lpDIB_IFFT)
+	{
+		BYTE* lpBits = (BYTE*)&lpDIB_IFFT->bmiColors[256];
+		StretchDIBits(
+			pDC->GetSafeHdc(),
+			600, 0,
+			lpDIB_IFFT->bmiHeader.biWidth,
+			lpDIB_IFFT->bmiHeader.biHeight,
+			0, 0,
+			lpDIB_IFFT->bmiHeader.biWidth,
+			lpDIB_IFFT->bmiHeader.biHeight,
+			lpBits,
+			lpDIB_IFFT, // bitmap data 
+			DIB_RGB_COLORS,
+			SRCCOPY);
+	}
+
+
 
 /*
 	//将黑白二值图变为青红二色
@@ -247,6 +286,42 @@ void Chlh516View::OnIft()
 
 BOOL gFD_isValid();
 void Chlh516View::OnUpdateIft(CCmdUI* pCmdUI)
+{
+	// TODO: Add your command update UI handler code here
+	pCmdUI->Enable(gFD_isValid());
+}
+
+void FFourier();
+void Chlh516View::OnFft()
+{
+	// TODO: Add your command handler code here
+	if (lpDIB_FFT)
+		free(lpDIB_FFT);
+	FFourier();
+	Invalidate();
+}
+
+
+void Chlh516View::OnUpdateFft(CCmdUI* pCmdUI)
+{
+	// TODO: Add your command update UI handler code here
+	pCmdUI->Enable(lpBitsInfo != NULL && IsGray());
+}
+
+void IFFourier();
+void Chlh516View::OnIfft()
+{
+	// TODO: Add your command handler code here
+	if (lpDIB_IFFT)
+		free(lpDIB_IFFT);
+
+	IFFourier();
+	Invalidate();
+
+}
+
+
+void Chlh516View::OnUpdateIfft(CCmdUI* pCmdUI)
 {
 	// TODO: Add your command update UI handler code here
 	pCmdUI->Enable(gFD_isValid());
